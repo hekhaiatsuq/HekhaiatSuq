@@ -753,10 +753,10 @@ async function loadFavs(){
 }
 let chats=[];try{chats=JSON.parse(store.get('chats')||'[]')}catch(e){}
 
-const API_USER='https://script.google.com/macros/s/AKfycbzblkt-CuoJJgaXWusTruWEwd-bSYMgNKeemcANm6eENJC7JVnaCuHW6i6LGQslTDML/exec';
+const API_USER='https://script.google.com/macros/s/AKfycbw6KoUDlfTYxxFUPN8pmv767GjlDygND8vrDHgCcow8LhVhVWvdmcMwrjjkbMrwkl16/exec';
 const API_PROD='https://script.google.com/macros/s/AKfycbxMXj2mlAojZ2aU6CS1VFpRuq2XRzOnMpTwYvaJ3X817Xull9nsdLEwsV4wm2PJDrk8nA/exec';
-const API_CHAT='https://script.google.com/macros/s/AKfycbz9FRd2Wb-Vx2NeAsWZn1-JekW0YCztaqn6SenouHaWqAlu3J_XElLQC1RosHwu6Fc8tw/exec';
-const API_BAL='https://script.google.com/macros/s/AKfycbyR0AX5iKwGiS-8L-GJGPE5MVQyojapGItj1zwgEp2xSSjranjUXCBJji5istGBpwVY7g/exec';
+const API_CHAT='https://script.google.com/macros/s/AKfycbxyu0NnBxvF2shccXf-16beFMuNM3kNNf5GsSexg3iMyUVJXGT8SklJo1we28yq80ODdg/exec';
+const API_BAL='https://script.google.com/macros/s/AKfycbxifbFE9oPWsjB536F4Y0eXCmYwl_yG1U7Z_MW5lVUjBfoUy8Na7aNAybK75HBYYso7jA/exec';
 const API_FAV='https://script.google.com/macros/s/AKfycbwKOX1DR6DjHi-PnoejEcfAZvPaAjCf8OiSJYPhnhNSh3yowlJk7V_emECyM7QIOdMT/exec';
 const MAXC=30000;
 const digits=s=>String(s).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g,'');
@@ -1782,11 +1782,18 @@ function paintEm(){
  if(ver){$('#prCodeRow').classList.add('hide');emMsg('✓ تم التحقق بنجاح',true)}
 }
 
+let expT=null;
+function hideCodeRow(){
+ clearTimeout(expT);
+ $('#prCodeRow').classList.add('hide');$('#prCode').value='';
+}
+
 $('#prEmail').addEventListener('input',()=>{
- $('#prCodeRow').classList.add('hide');$('#prCode').value='';emMsg('');
+ hideCodeRow();emMsg('');
  $('#prSend').classList.remove('hide');
  paintEm();
 });
+
 $('#prSend').onclick=async()=>{
  const em=$('#prEmail').value.trim(),btn=$('#prSend');
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){emMsg('أدخل بريدًا إلكترونيًا صحيحًا');return}
@@ -1798,8 +1805,12 @@ $('#prSend').onclick=async()=>{
    emMsg(r.error||'تعذر إرسال الرمز');btn.disabled=false;return;
   }
   $('#prCodeRow').classList.remove('hide');$('#prCode').focus();
-  emMsg('تم إرسال الرمز إلى بريدك',true);
-  let n=120;const old='رمز التحقق';btn.textContent=old+' ('+n+')';
+  emMsg('تم إرسال الرمز إلى بريدك، صالح لمدة 5 دقائق',true);
+  // بعد 5 دقائق يختفي حقل الرمز وزر التأكيد
+  clearTimeout(expT);
+  expT=setTimeout(()=>{hideCodeRow();emMsg('انتهت صلاحية الرمز، اطلب رمزًا جديدًا')},300000);
+  // عدّاد إعادة الإرسال: دقيقة
+  let n=60;const old='رمز التحقق';btn.textContent=old+' ('+n+')';
   clearInterval(emT);
   emT=setInterval(()=>{
    n--;
@@ -1808,23 +1819,28 @@ $('#prSend').onclick=async()=>{
   },1000);
  }catch(x){emMsg('تعذر الاتصال بالخادم');btn.disabled=false}
 };
+
 async function verifyEm(){
  const code=$('#prCode').value.trim(),btn=$('#prVerify');
  if(code.length<6){emMsg('أدخل الرمز المكوّن من 6 أرقام');return}
  btn.disabled=true;
  try{
-  const r=await post(API_USER,{action:'verifycode',token:S.token,email:$('#prEmail').value.trim(),code});
+  const em=$('#prEmail').value.trim();
+  const r=await post(API_USER,{action:'verifycode',token:S.token,email:em,code});
   if(!r.ok){
    if(r.code==='auth'){saveSess(null);$('#prDlg').close();return}
    emMsg(r.error||'الرمز غير صحيح');
   }else{
-   emOk=$('#prEmail').value.trim();
+   emOk=em;
+   if(r.user){S.user=r.user;saveSess(S)}    // البريد حُفظ تلقائيًا في بيانات المستخدم
+   hideCodeRow();
    clearInterval(emT);$('#prSend').disabled=false;$('#prSend').textContent='رمز التحقق';
-   $('#prCode').value='';paintEm();
+   paintEm();
   }
  }catch(x){emMsg('تعذر الاتصال بالخادم')}
  btn.disabled=false;
 }
+
 $('#prVerify').onclick=verifyEm;
 $('#prCode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();verifyEm()}});
 
