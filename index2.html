@@ -96,9 +96,9 @@ select.st{border:1.5px solid var(--line);border-radius:8px;padding:3px 6px;backg
 
 <script>
 const API={
- user:'https://script.google.com/macros/s/AKfycby-ChRuLC_RvabePlY6OSUNL_WY52lWpnLHDm6rv8QbcPFPrZ5pjfCv-UwRIUIZybWa/exec',
- prod:'https://script.google.com/macros/s/AKfycbwpsjTP2CJ0QlNJ5gd8HYBJJtlLCAbJMh99GEhdfy5jweJb40YT73Xn3x8QBLfaHJsFIA/exec',
- ord:'https://script.google.com/macros/s/AKfycbxUEIsMtvnZzcaXN-7tewY4FOm9AHZV00CYBhD5VL7cIba29aqKrOFUWUItmilmJXySpw/exec'
+ user:'https://script.google.com/macros/s/AKfycbxdMsE56NfHr9dWf9arFnuOEvkgHurjJuNvbxmt-5ax2cFH8inn0tpDVB7uNWcSACWw/exec',
+ prod:'https://script.google.com/macros/s/AKfycbxMXj2mlAojZ2aU6CS1VFpRuq2XRzOnMpTwYvaJ3X817Xull9nsdLEwsV4wm2PJDrk8nA/exec',
+ ord:'https://script.google.com/macros/s/AKfycbyd-XqTaRqRMWGYKF8ehxQgJnLcWrbU42yhAp6n_x1hGT0RsoEo0U4SDGAT7nbtPz8z3A/exec'
 };
 const OPT={
  ustate:['نشط','غير نشط','موقوف'],perm:['User','Admin'],
@@ -249,7 +249,6 @@ async function save(i,vals){
  const sec=cur,c=CFG[sec],row=R[i];
  if(sec==='orders'&&vals.state==='معتمد'&&row.state!=='معتمد'&&!confirm('اعتماد الطلب سيضيف '+(vals.qty!=null?vals.qty:row.qty)+' رصيد إلى المستخدم ولا يمكن التراجع. متابعة؟'))return false;
  const body={...row,...vals,action:c.save};
-  delete body.pass;
  if(c.img){const m=IMG[row.k];if(m&&m!=='…'&&m.dirty)body.imgs=m.list}
  const r=await call(c.api,body);
  if(!r.ok){toast(r.error||'فشل الحفظ',1);return false}
