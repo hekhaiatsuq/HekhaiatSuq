@@ -753,10 +753,10 @@ async function loadFavs(){
 }
 let chats=[];try{chats=JSON.parse(store.get('chats')||'[]')}catch(e){}
 
-const API_USER='https://script.google.com/macros/s/AKfycbw6KoUDlfTYxxFUPN8pmv767GjlDygND8vrDHgCcow8LhVhVWvdmcMwrjjkbMrwkl16/exec';
+const API_USER='https://script.google.com/macros/s/AKfycbwXDi7qeJUZinffXdeCQWKuXv7ajM94uFeg4OQrsfeCnbGQ79tscvJZ_QoHJWUhele-/exec';
 const API_PROD='https://script.google.com/macros/s/AKfycbxMXj2mlAojZ2aU6CS1VFpRuq2XRzOnMpTwYvaJ3X817Xull9nsdLEwsV4wm2PJDrk8nA/exec';
-const API_CHAT='https://script.google.com/macros/s/AKfycbxyu0NnBxvF2shccXf-16beFMuNM3kNNf5GsSexg3iMyUVJXGT8SklJo1we28yq80ODdg/exec';
-const API_BAL='https://script.google.com/macros/s/AKfycbxifbFE9oPWsjB536F4Y0eXCmYwl_yG1U7Z_MW5lVUjBfoUy8Na7aNAybK75HBYYso7jA/exec';
+const API_CHAT='https://script.google.com/macros/s/AKfycbxmIbsjegBYXCxber3md8NXmZa0lfl18z33Tcd6G-f0DctI9PqDXWd3Pfk0qRZ6vw7s8Q/exec';
+const API_BAL='https://script.google.com/macros/s/AKfycbxzNsJ1mDjVdL1TzoDGSqfG-wSBt3u916onO8rWBXv-iZIxq80qMJORq2eER7E_4L_pLQ/exec';
 const API_FAV='https://script.google.com/macros/s/AKfycbwKOX1DR6DjHi-PnoejEcfAZvPaAjCf8OiSJYPhnhNSh3yowlJk7V_emECyM7QIOdMT/exec';
 const MAXC=30000;
 const digits=s=>String(s).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g,'');
@@ -1072,7 +1072,7 @@ $('#loginForm').addEventListener('submit',async e=>{
  try{
   const r=await post(API_USER,{action:'forgot',phone:ph,email:em});
   if(!r.ok)err.textContent=r.error||'حدث خطأ';
-  else{err.style.color='var(--wa)';err.textContent='تم إرسال كلمة المرور الجديدة إلى بريدك';setTimeout(()=>{err.style.color='';setMode(false)},2500)}
+  else{err.style.color='var(--wa)';err.textContent='تم إرسال كلمة المرور إلى بريدك';setTimeout(()=>{err.style.color='';setMode(false)},2500)}
  }catch(x){err.textContent='تعذر الاتصال بالخادم'}
  btn.disabled=false;
  return;
@@ -1805,18 +1805,11 @@ $('#prSend').onclick=async()=>{
    emMsg(r.error||'تعذر إرسال الرمز');btn.disabled=false;return;
   }
   $('#prCodeRow').classList.remove('hide');$('#prCode').focus();
-  emMsg('تم إرسال الرمز إلى بريدك، صالح لمدة 5 دقائق',true);
+  emMsg('تم إرسال الرمز إلى بريدك',true);
+  btn.disabled=false;
   // بعد 5 دقائق يختفي حقل الرمز وزر التأكيد
   clearTimeout(expT);
-  expT=setTimeout(()=>{hideCodeRow();emMsg('انتهت صلاحية الرمز، اطلب رمزًا جديدًا')},300000);
-  // عدّاد إعادة الإرسال: دقيقة
-  let n=60;const old='رمز التحقق';btn.textContent=old+' ('+n+')';
-  clearInterval(emT);
-  emT=setInterval(()=>{
-   n--;
-   if(n<=0){clearInterval(emT);btn.disabled=false;btn.textContent=old}
-   else btn.textContent=old+' ('+n+')';
-  },1000);
+  expT=setTimeout(()=>{hideCodeRow();emMsg('')},300000);
  }catch(x){emMsg('تعذر الاتصال بالخادم');btn.disabled=false}
 };
 
@@ -1834,7 +1827,7 @@ async function verifyEm(){
    emOk=em;
    if(r.user){S.user=r.user;saveSess(S)}    // البريد حُفظ تلقائيًا في بيانات المستخدم
    hideCodeRow();
-   clearInterval(emT);$('#prSend').disabled=false;$('#prSend').textContent='رمز التحقق';
+
    paintEm();
   }
  }catch(x){emMsg('تعذر الاتصال بالخادم')}
@@ -2112,7 +2105,7 @@ const EN={
 "أدخل رقم هاتف صحيحًا":"Enter a valid phone number","أدخل رقم هاتف صحيحًا مع المفتاح":"Enter a valid phone number with country code",
 "أدخل بريدًا إلكترونيًا صحيحًا":"Enter a valid email","كلمة المرور 6 أحرف على الأقل":"Password must be at least 6 characters",
 "أدخل الاسم واختر المنطقة والولاية":"Enter your name and choose region and wilayat","أدخل الاسم":"Enter your name",
-"اختر المنطقة والولاية":"Choose region and wilayat","تم إرسال كلمة المرور الجديدة إلى بريدك":"The new password was sent to your email",
+"اختر المنطقة والولاية":"Choose region and wilayat","تم إرسال كلمة المرور إلى بريدك":"The password was sent to your email",
 "تعذر معالجة الصورة":"Could not process the image","تعذر تصغير الصورة بما يكفي":"Could not shrink the image enough","ملف الصورة غير صالح":"Invalid image file",
 "تعذر إرسال الرمز":"Could not send the code","تم إرسال الرمز إلى بريدك":"Code sent to your email","أدخل الرمز المكوّن من 6 أرقام":"Enter the 6-digit code",
 "الرمز غير صحيح":"Incorrect code","✓ تم التحقق بنجاح":"✓ Verified successfully","تعذر الحفظ":"Could not save",
