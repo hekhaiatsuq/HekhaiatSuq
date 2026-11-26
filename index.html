@@ -670,6 +670,10 @@ var srcs=[
     <input id="prPhone" disabled aria-label="رقم الهاتف">
     <input id="prName" maxlength="24" placeholder="اسم المستخدم" aria-label="الاسم">
     <div class="emrow">
+  <input id="prPass" type="password" placeholder="كلمة المرور" aria-label="كلمة المرور" autocomplete="new-password">
+  <button type="button" class="btn ghost" id="prEye" aria-label="إظهار / إخفاء">👁</button>
+</div>
+    <div class="emrow">
   <input id="prEmail" type="email" placeholder="البريد الإلكتروني" aria-label="البريد">
   <button type="button" class="btn" id="prSend">رمز التحقق</button>
 </div>
@@ -749,10 +753,10 @@ async function loadFavs(){
 }
 let chats=[];try{chats=JSON.parse(store.get('chats')||'[]')}catch(e){}
 
-const API_USER='https://script.google.com/macros/s/AKfycby-ChRuLC_RvabePlY6OSUNL_WY52lWpnLHDm6rv8QbcPFPrZ5pjfCv-UwRIUIZybWa/exec';
-const API_PROD='https://script.google.com/macros/s/AKfycbwpsjTP2CJ0QlNJ5gd8HYBJJtlLCAbJMh99GEhdfy5jweJb40YT73Xn3x8QBLfaHJsFIA/exec';
-const API_CHAT='https://script.google.com/macros/s/AKfycbxKijdpodsJcbYxZSTyosj32hDUo8cFvXcKxP1oXCRVO-jAYcXz8ahmFs1dqy4d7RiIMA/exec';
-const API_BAL='https://script.google.com/macros/s/AKfycbxUEIsMtvnZzcaXN-7tewY4FOm9AHZV00CYBhD5VL7cIba29aqKrOFUWUItmilmJXySpw/exec';
+const API_USER='https://script.google.com/macros/s/AKfycbxdMsE56NfHr9dWf9arFnuOEvkgHurjJuNvbxmt-5ax2cFH8inn0tpDVB7uNWcSACWw/exec';
+const API_PROD='https://script.google.com/macros/s/AKfycbxMXj2mlAojZ2aU6CS1VFpRuq2XRzOnMpTwYvaJ3X817Xull9nsdLEwsV4wm2PJDrk8nA/exec';
+const API_CHAT='https://script.google.com/macros/s/AKfycbzVDPNFunlQqxzL0-P8VmcY3N08qxIcbOffEGK93Ofu4Ba1CRKluCipBQRrMdMrJxM8pg/exec';
+const API_BAL='https://script.google.com/macros/s/AKfycbyd-XqTaRqRMWGYKF8ehxQgJnLcWrbU42yhAp6n_x1hGT0RsoEo0U4SDGAT7nbtPz8z3A/exec';
 const API_FAV='https://script.google.com/macros/s/AKfycbwKOX1DR6DjHi-PnoejEcfAZvPaAjCf8OiSJYPhnhNSh3yowlJk7V_emECyM7QIOdMT/exec';
 const MAXC=30000;
 const digits=s=>String(s).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g,'');
@@ -1795,7 +1799,7 @@ $('#prSend').onclick=async()=>{
   }
   $('#prCodeRow').classList.remove('hide');$('#prCode').focus();
   emMsg('تم إرسال الرمز إلى بريدك',true);
-  let n=60;const old='رمز التحقق';btn.textContent=old+' ('+n+')';
+  let n=120;const old='رمز التحقق';btn.textContent=old+' ('+n+')';
   clearInterval(emT);
   emT=setInterval(()=>{
    n--;
@@ -1845,8 +1849,20 @@ $('#prSend').classList.remove('hide');paintEm();
  $('#prR').value=REG[r]?r:'';fillWil('#prR','#prW',w);
  drawPr(u.image);
  $('#prErr').textContent='';
+  $('#prPass').value='';$('#prPass').type='password';$('#prEye').textContent='👁';
+ $('#prPass').placeholder='جارٍ التحميل…';prPass0='';
+ post(API_USER,{action:'mypass',token:S.token},true).then(r=>{
+  $('#prPass').placeholder='كلمة المرور';
+  if(r&&r.ok){prPass0=r.pass;$('#prPass').value=r.pass}
+ }).catch(()=>{$('#prPass').placeholder='كلمة المرور'});
  $('#prDlg').showModal();
 }
+let prPass0='';
+$('#prEye').onclick=()=>{
+ const i=$('#prPass'),show=i.type==='password';
+ i.type=show?'text':'password';
+ $('#prEye').textContent=show?'🙈':'👁';
+};
 $('#profBtn').onclick=openProfile;
 $('#userBox').onclick=openProfile;
 $('#uHi').onclick=openProfile;
@@ -1869,6 +1885,8 @@ $('#prForm').addEventListener('submit',async e=>{
  const rg=$('#prR').value,wl=$('#prW').value;
  if(!name){err.textContent='أدخل الاسم';return}
  if(!rg||!wl){err.textContent='اختر المنطقة والولاية';return}
+  const pw=$('#prPass').value.trim();
+ if(pw&&pw!==prPass0&&pw.length<6){err.textContent='كلمة المرور 6 أحرف على الأقل';return}
  const saved=String(S.user.email||'');
  const body={action:'update',token:S.token,name,loc:rg+' - '+wl};
  let skipped=false;
@@ -1877,6 +1895,7 @@ $('#prForm').addEventListener('submit',async e=>{
   else skipped=true;                  // لم يتم التحقق: لا يُحفظ
  }
  if(prImg!==undefined)body.image=prImg;
+  if(pw&&pw!==prPass0)body.pass=pw;   // تُرسل فقط إذا تغيّرت
  btn.disabled=true;
  try{
   const r=await post(API_USER,body);
